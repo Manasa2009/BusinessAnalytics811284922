@@ -1,0 +1,43 @@
+ Assignment 1, Manasa Pullabhatla,  811284922
+ 
+ 
+### Install the ISLR library using the install.packages() command. Call the library using the library(ISLR) command to ensure that the library is correctly installed.
+```{r}
+# install.packages("ISLR") - Commenting out the package since it's already installed
+
+library("ISLR")
+```
+
+ 
+### Create a new R-Notebook (.Rmd) file. In the first code chunk, call the ISLR library and then print the summary of the Carseats dataset. How many observations (rows) this dataset contains?
+```{r}
+df <- Carseats
+
+summary(df)
+```
+### Using the summary statistics shown above, what is maximum value of the advertising attribute? 
+
+```{r}
+
+max(df $Advertising)
+```
+### Calculate the IQR of the Price attribute
+
+```{r}
+IQR(df $Price)
+```
+### Plot the Sales against Price. What do you see in there? 
+ 
+```{r}
+plot(x = df$Sales, y = df$Price, 
+     xlab = "sales", ylab = "price", main = "Sales against Price")
+```
+
+### Calculate the correlation of the two attributes. What does the sign of the correlation coefficient suggest?
+ 
+```{r}
+cor(x = df $Sales, y = df $Price)
+```
+From the above visual and function it is understood that the correlation between sales and price is -0.4449507, it indicates a  negative coorelation, implying that as prices increase, sales tend to decrease to an extent.
+ 
+ 
