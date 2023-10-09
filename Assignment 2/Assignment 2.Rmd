@@ -1,0 +1,153 @@
+Assignment 2 Manasa Pullabhatla 811284922
+
+```{r}
+install.packages("VIM")
+```
+```{r}
+install.packages("e1071")
+```
+#Activaing all the required packages
+```{r}
+library("VIM")
+library("ISLR")
+library("caret")
+library("class")
+library("e1071")
+library("ggplot2")
+library("corrplot")
+library("dplyr")
+```
+
+#Loading data
+
+```{r}
+data.df <- read.csv("C:/Users/Sailaja/Documents/BA/Business Analytics/Online_Retail (4).csv")
+```
+
+#1 Displaying the number of transactions broken down by different nations.
+
+```{r}
+data_country <- as.data.frame(table(data.df$Country))
+
+data_country$Percentage <- data_country$Freq/nrow(data.df) * 100
+
+colnames(data_country) <- c("Country", "Count", "Percentage")
+
+data_country[data_country$Percentage > 1,]
+```
+
+#2 . Create a new variable ‘TransactionValue’ that is the product of the exising ‘Quantity’ and  ‘UnitPrice’ variables. Add this variable to the dataframe.
+
+```{r}
+data.df$TransactionValue <- data.df$Quantity * data.df$UnitPrice
+```
+#3 . Using the newly created variable, TransactionValue, show the breakdown of transaction values by countries i.e. how much money in total has been spent each country. Show this in total sum of transaction values. Show only countries with total transaction exceeding 130,000 British Pound. 
+
+```{r}
+data.df %>% select(TransactionValue,Country) %>% group_by(Country) %>% summarise(Total = sum(TransactionValue)) %>% filter(Total >= 130000) %>% arrange((desc(Total)))
+```
+#The countries with total transaction exceeding 130,000 British Pound are United Kingdom, Netherlands, ERIE, Germany, France, Australia
+
+#4 Converting Invoice Date into a POSIXlt object
+
+```{r}
+Temp=strptime(data.df$InvoiceDate,format='%m/%d/%Y %H:%M',tz='GMT')
+head(Temp)
+
+#New_Invoice_Date
+data.df$New_Invoice_Date <- as.Date(Temp)
+
+data.df$New_Invoice_Date[20000]- data.df$New_Invoice_Date[10]
+
+#Invoice_Day_Week
+data.df$Invoice_Day_Week= weekdays(data.df$New_Invoice_Date)
+
+#New_Invoice_Hour
+data.df$New_Invoice_Hour = as.numeric(format(Temp, "%H"))
+
+#New_Invoice_Month
+data.df$New_Invoice_Month = as.numeric(format(Temp, "%m"))
+```
+#4 a) Show the percentage of transactions (by numbers) by days of the week 
+
+```{r}
+data.df %>% group_by(Invoice_Day_Week) %>% summarise(count=n()) %>% mutate(percentage=count/nrow(data.df)*100)
+```
+#4 b) Show the percentage of transactions (by transaction volume) by days of the week
+
+```{r}
+data.df %>% group_by(Invoice_Day_Week) %>% summarise(Total = sum(TransactionValue)) %>% mutate(Percentage = Total/sum(Total)*100)
+```
+#4 c) Show the percentage of transactions (by transaction volume) by month of the year
+
+```{r}
+data.df %>% group_by(New_Invoice_Month) %>% summarise(Total = sum(TransactionValue)) %>% mutate(Percentage = Total/sum(Total) * 100)
+```
+#4 d)  What was the date with the highest number of transactions from Australia?
+
+```{r}
+data.df %>% filter(Country =="Australia") %>% group_by(New_Invoice_Date) %>% summarise(Total_Count = n()) %>% arrange((desc(Total_Count)))
+```
+
+
+# 5)Plot the histogram of transaction values from Germany
+
+```{r}
+Germany <- data.df %>% filter(Country == "Germany") %>% group_by(New_Invoice_Month) %>% summarise(Total=sum(TransactionValue)) 
+
+hist(Germany$Total, main = "Transaction Values of Germany", xlab="Total per month", ylab="Frequencies")
+```
+# 6) Which customer had the highest number of transactions? Which customer is most valuable?
+
+```{r}
+data.df %>% group_by(CustomerID) %>% select(CustomerID) %>% filter(!is.na(CustomerID)) %>% summarise(n_count = n()) %>% arrange((desc(n_count)))
+```
+# The customer with the customer ID 17841 has the highest transaction record
+
+# 7) . Calculate the percentage of missing values for each variable in the dataset.
+
+```{r}
+colMeans(is.na(data.df)*100)
+```
+# 8) What are the number of transactions with missing CustomerID records by countries?
+
+```{r}
+data.df %>% filter(is.na(CustomerID)) %>% group_by(Country) %>% count()
+``` 
+#United Kingdom has the highest number of transactions with customers ID i.e 133600.
+
+# 9)  On average, how often the costumers comeback to the website for their next shopping?
+
+```{r}
+Diff_Days <- data.df %>% select(CustomerID,New_Invoice_Date) %>% group_by(CustomerID) %>% distinct(New_Invoice_Date) %>% arrange(desc(CustomerID)) %>%  mutate(Days_Between = New_Invoice_Date-lag(New_Invoice_Date)) %>% filter(!is.na(Days_Between)) 
+
+Diff_Days
+
+mean(Diff_Days$Days_Between)
+```
+#On an average it takes 38 days for the customers to come back to the website for the next shopping.
+
+#10) What is the return rate for the French customers?
+
+```{r}
+France_Cancel <- data.df %>% filter(Country=="France",Quantity<0) %>% count()
+
+France_Total <- data.df %>% filter(Country=="France") %>% count()
+
+Return_Percentage_France <- France_Cancel/France_Total*100
+Return_Percentage_France
+```
+#The return rate of the purchases for France customers 1.74%
+
+#11) What is the product that has generated the highest revenue for the retailer?
+
+```{r}
+data.df %>% select(StockCode,TransactionValue) %>% group_by(StockCode) %>%  summarise(Total=sum(TransactionValue)) %>% arrange((desc(Total))) 
+```
+#The product with the Stock code "DOTCOM POSTAGE" has generated the highest revenue of 206245.48 Pounds.
+#12)How many unique customers are represented in the dataset?
+
+```{r}
+data.df %>% select(CustomerID) %>% unique() %>% count()
+```
+#There are 4373 Unique Customers represented in the data set.
